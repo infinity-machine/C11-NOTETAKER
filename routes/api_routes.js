@@ -19,12 +19,13 @@ notes_router.get('/notes', (request, response) => {
 });
 
 // CREATE NOTE
-notes_router.post('/notes', (request, response) => {
+notes_router.post('/notes', (req, response) => {
     getNotesData()
         .then(notes_data => {
-            console.log(notes_data)
-            const new_note = request.body;
-            // new_note.id = uuid().slice(0,4);
+            console.log(notes_data);
+            const new_note = req.body;
+            new_note.id = uuid().slice(0,4);
+            console.log(req.body)
             notes_data.push(new_note);
             fs.promises.writeFile(db_path, JSON.stringify(notes_data, null, 2))
                 .then(() => {
@@ -36,12 +37,19 @@ notes_router.post('/notes', (request, response) => {
 });
 
 notes_router.delete('/notes/:id', (request, response) => {
-//     getNotesData()
-//         .then(notes_data => {
-//             console.log(notes_data)
-//         });
-console.log(request.params.id)
+    getNotesData()
+        .then(notes_data => {
+            const id = request.params.id;
+            const obj = notes_data.find(note => note.id === id);
+            const index = notes_data.indexOf(obj);
+            notes_data.splice(index, 1);
+            fs.promises.writeFile(db_path, JSON.stringify(notes_data, null, 2))
+                .then(() => {
+                    console.log('TODOS UPDATED SUCCESSFULLY');
+                    response.json(notes_data);
+                })
+                .catch(err => console.log(err))
+        });
 })
-
 // EXPORTS
 module.exports = notes_router;
